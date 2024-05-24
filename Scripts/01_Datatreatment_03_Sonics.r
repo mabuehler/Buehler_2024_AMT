@@ -26,11 +26,52 @@ library(ggplot2)
 
 PathData <- "Path to /data"   
 PathRSaves <- "Path to /RSaves"
-PathFigures <- "~/repos/4_Projects/8_FerLAS/Figures"
+PathFigures <- "~/Path to /Figures"
 source("https://raw.githubusercontent.com/hafl-gel/gel-scripts/main/sonic-turbulence.r")
 source("https://raw.githubusercontent.com/hafl-gel/gel-scripts/main/wgs84-ch1903.r")
 
+#################
+### Functions ###
+#################
 
+## Function needed to correct the time of the device to a preferred reference time (usually Etc/GMT-1)
+shift_dt <- function(x,ibts,tz="Etc/GMT-1",Plot=FALSE){
+  versatz <- as.numeric(x$RefTime - x$GFTime,units="secs")
+  zeiten <- with_tz(x$RefTime,tz=tz)
+  a <- versatz[-length(versatz)]
+  b <- (versatz[-1] - a)/as.numeric(zeiten[-1] - zeiten[-length(zeiten)],units="secs")
+  st_out <- st_in <- st(ibts)
+  et_out <- et_in <- et(ibts)
+  ind <- findInterval(st_in,zeiten,all.inside=TRUE)
+  for(i in unique(ind)){
+    st_sub <- st_in[ind == i]
+    st_out[ind == i] <- st_sub + round(a[i] + b[i]*as.numeric(st_sub - zeiten[i],units="secs"), 5)
+    et_sub <- et_in[ind == i]
+    et_out[ind == i] <- et_sub + round(a[i] + b[i]*as.numeric(et_sub - zeiten[i],units="secs"), 5)
+  }
+  if(Plot){
+    par(mfrow=c(2,1))
+    d_st <- st_out-st_in
+    d_et <- et_out-et_in
+    plot(ibts[,1],blank=TRUE,ylim=range(d_st),ylab=attr(d_st,"units"),main="st")
+    lines(st_in,d_st)
+    plot(ibts[,1],blank=TRUE,ylim=range(d_et),ylab=attr(d_et,"units"),main="et")
+    lines(et_in,d_et)
+  }
+  attr(ibts,"st") <- st_out
+  attr(ibts,"et") <- et_out
+  ibts
+   }
+
+## Function to draw lines on map
+lines_sec2xy <- function(xyMK,sensor,node=1,wd,col="lightblue",lwd=2,...){
+  GF <- xyMK[xyMK[,1] %in% sensor,]
+  sens <- as.numeric(GF[GF[,3] == node,4:5])
+  b <- tan((90 - wd)/180*pi)
+  x <- if(wd <= 180) 600 else -600
+  y <- sens[2] - (sens[1] - x)*b
+  lines(c(sens[1],x),c(sens[2],y),col=col,lwd=lwd,...)
+}
 
 ###################
 ### time offset ###
@@ -49,45 +90,6 @@ ZvSonicC <- time_offset["SonicC", mean(RefTime - GFTime)]
 ZvSonic2 <- time_offset["Sonic2", mean(RefTime - GFTime)]
 
 
- ### Funktionen
-shift_dt <- function(x,ibts,tz="Etc/GMT-1",Plot=FALSE){
-	versatz <- as.numeric(x$RefTime - x$GFTime,units="secs")
-	zeiten <- with_tz(x$RefTime,tz=tz)
-	a <- versatz[-length(versatz)]
-	b <- (versatz[-1] - a)/as.numeric(zeiten[-1] - zeiten[-length(zeiten)],units="secs")
-	st_out <- st_in <- st(ibts)
-	et_out <- et_in <- et(ibts)
-	ind <- findInterval(st_in,zeiten,all.inside=TRUE)
-	for(i in unique(ind)){
-	  st_sub <- st_in[ind == i]
-	  # browser()
-	  st_out[ind == i] <- st_sub + round(a[i] + b[i]*as.numeric(st_sub - zeiten[i],units="secs"), 5)
-	  et_sub <- et_in[ind == i]
-	  et_out[ind == i] <- et_sub + round(a[i] + b[i]*as.numeric(et_sub - zeiten[i],units="secs"), 5)
-	}
-	if(Plot){
-	  par(mfrow=c(2,1))
-	  d_st <- st_out-st_in
-	  d_et <- et_out-et_in
-	  plot(ibts[,1],blank=TRUE,ylim=range(d_st),ylab=attr(d_st,"units"),main="st")
-	  lines(st_in,d_st)
-	  plot(ibts[,1],blank=TRUE,ylim=range(d_et),ylab=attr(d_et,"units"),main="et")
-	  lines(et_in,d_et)
-	}
-	attr(ibts,"st") <- st_out
-	attr(ibts,"et") <- et_out
-	ibts
-	 }
-
-lines_sec2xy <- function(xyMK,sensor,node=1,wd,col="lightblue",lwd=2,...){
-  GF <- xyMK[xyMK[,1] %in% sensor,]
-  sens <- as.numeric(GF[GF[,3] == node,4:5])
-  b <- tan((90 - wd)/180*pi)
-  x <- if(wd <= 180) 600 else -600
-  y <- sens[2] - (sens[1] - x)*b
-  lines(c(sens[1],x),c(sens[2],y),col=col,lwd=lwd,...)
-}
-
 #####################
 ### canopy height ###
 #####################
@@ -102,31 +104,26 @@ canopy_c <- 0.20
 ##############################
 
 WS700_2 <- readRDS(file.path(PathRSaves, "WS700.rds"))
-# 5min Offset Korrektur (noch nicht angewendet)
+# There is a 5min systematic time offset (due to buffering or internal settings)
 WS <- shift_time(WS700_2[[1]]$data,"-5mins") 
 # remove no wind data
 WS[which(WS$WS_0460 == 0),c("WS_0460","WD_corr")] <- NA_real_
-# WS[which(WS$WS_0480 == 0),c("WS_0460","WD_corr")] <- NA_real_
 
-  # Pfadlängen & Geometrie
+# Path lengts and geometry/coordinates
   load(file.path(PathRSaves,"Coordinates_bLSmodelR.RData"))
   # Google map
   STO_Map <- ReadMapTile(file.path(PathFigures,"STO_GoogleMaps.png"))
-  Sensors_MK_xy <- CH.to.map(STO_Map,Sensors_MK)
-  Sensors_QV3_xy <- CH.to.map(STO_Map,Sensors_QV3)
-  Sources_xy <- CH.to.map(STO_Map,Sources)
-  Sonics_MK_xy <- CH.to.map(STO_Map,Sonics_MK)
-  Sonics_QV3_xy <- CH.to.map(STO_Map,Sonics_QV3)
-  WeatherStation_xy <- CH.to.map(STO_Map,WeatherStation)
+  Sensors_MC_xy <- CH_to_map(STO_Map,Sensors_MC)
+  Sensors_IC2_xy <- CH_to_map(STO_Map,Sensors_IC2)
 
 
 #########################################################################
 ### Determine deviaiton to north with the help of the weather station ###
 #########################################################################
 
-  ###############
-  ### Sonic A ###
-  ###############
+  ##########################
+  ### Sonic A or UA-2.0h ###
+  ##########################
 
   sA_dir <- dir(file.path(PathData,"Sonic","SonicA"), full.names = TRUE)
   sA_list <- lapply(sA_dir[], readWindMaster_ascii)
@@ -146,7 +143,7 @@ WS[which(WS$WS_0460 == 0),c("WS_0460","WD_corr")] <- NA_real_
       )
   })
 
-  # Abweichung zu Nord
+  # Deviation towards north
   sA_off <- 0
   sA_ws$WD_sAcorr <- (sA_ws$WD_sA + sA_off) %% 360
   colClasses(sA_ws)[c("WD_sA","WD_sAcorr")] <- "circ"
