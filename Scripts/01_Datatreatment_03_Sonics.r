@@ -155,39 +155,16 @@ WS[which(WS$WS_0460 == 0),c("WS_0460","WD_corr")] <- NA_real_
     ,sA_ws30$sA_m_WS %% 360
     )
   sA_ws30$WDdiff[which(sA_ws30$WDdiff == sA_ws30$sA_m_WS)] <- -sA_ws30$WDdiff[which(sA_ws30$WDdiff == sA_ws30$sA_m_WS)]
-  m_sA_1 <- MASS::rlm(WDdiff ~ 1, sA_ws30["21.01.2021 16:00 - 27.01.2021 13:00"], subset = U_sA > 0.8 & WDdiff > -69-30 & WDdiff < 69+30)
-  m_sA_2 <- MASS::rlm(WDdiff ~ 1, sA_ws30["05.03.2021 15:00 - 10.03.2021 16:00"], subset = U_sA > 0.8 & WDdiff > 12-30 & WDdiff < 12+30)
   m_sA_3 <- MASS::rlm(WDdiff ~ 1, sA_ws30["19.03.2021 09:30 - 21.03.2021 12:00"], subset = U_sA > 0.8 & (WD_corr < 38 | WD_corr > 75) & WDdiff < 2+30 & WDdiff > 2-30) 
   m_sA_4 <- MASS::rlm(WDdiff ~ 1, sA_ws30["21.03.2021 15:10 - 26.03.2021 11:00"], subset = U_sA > 0.8 & (WD_corr < 38 | WD_corr > 75) & abs(WDdiff) < 22+30)
-  wdoff_sA_1 <- (sA_off + coef(m_sA_1)) %% 360
-  wdoff_sA_2 <- (sA_off + coef(m_sA_2)) %% 360
   wdoff_sA_3 <- (sA_off + coef(m_sA_3)) %% 360
   wdoff_sA_4 <- (sA_off + coef(m_sA_4)) %% 360
-  # wdoff_sA_1 <- 294.1486
-  # wdoff_sA_2 <- 13.5 
-  # wdoff_sA_3 <- 359.4507 # habe das bLS nicht neu gerechnet, da nur 0.5 grad
-  # wdoff_sA_4 <- 20.9562 # did not adapt this with the 1min data
+  # wdoff_sA_3 <- 359.4507
+  # wdoff_sA_4 <- 20.9562
 
-  A1 <- as.data.table(sA_ws30["21.01.2021 16:00 - 27.01.2021 13:00"])
-  A2 <- as.data.table(sA_ws30["05.03.2021 15:00 - 10.03.2021 16:00"])
   A3 <- as.data.table(sA_ws30["19.03.2021 09:30 - 21.03.2021 12:00"])
   A4 <- as.data.table(sA_ws30["21.03.2021 15:10 - 26.03.2021 11:00"])
 
-  A1[,summary(WDdiff)]
-  coef(MASS::rlm(WDdiff ~ 1, sA_ws30["21.01.2021 16:00 - 27.01.2021 13:00"]))
-  plot(A1[,(WDdiff+180) %% 360 - 180])
-  plot(A1[WS_0460 > 0.8,(WDdiff+180) %% 360 - 180])
-  A1[WS_0460 > 0.8,summary(WDdiff)]
-  plot(A1[WDdiff > -68-40 & WDdiff < -68+40,(WDdiff+180) %% 360 - 180])
-  A1[WS_0460 > 0.8 & WDdiff > -68-40 & WDdiff < -68+40,summary(WDdiff)]
-
-  A2[,summary((WDdiff+180) %% 360 - 180)]
-  coef(MASS::rlm(WDdiff ~ 1, sA_ws30["05.03.2021 15:00 - 10.03.2021 16:00"]))
-  plot(A2[,(WDdiff+180) %% 360 - 180])
-  plot(A2[WS_0460 > 0.8,(WDdiff+180) %% 360 - 180])
-  A2[WS_0460 > 0.8,summary(WDdiff)]
-  plot(A2[WDdiff > 14-40 & WDdiff < 14+40,(WDdiff+180) %% 360 - 180])
-  A2[WS_0460 > 0.8 & WDdiff > 14-40 & WDdiff < 14+40,summary(WDdiff)]
 
   A3[,summary((WDdiff+180) %% 360 - 180)]
   plot(WD_sAcorr ~ WD_corr,A3)
