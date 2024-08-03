@@ -8,12 +8,13 @@
 ##############################################################
 
 # Author: Marcel Bühler
-# Date: August 2, 2024
+# Date: August 4, 2024
 # Contact: mb@bce.au.dk or Christoph Häni christoph.haeni@bfh.ch
-# Description: This script reads in the weather station data and makes it ready for further us.
+# Description: This script treats the unprocessed concentration data. It removes false concentrations and applies an intercalibration and makes the data ready for further us.
 #
 # Note: This code was written by Marcel Bühler and is intended to follow the publication 'Applicability of the inverse dispersion method to measure emissions from animal housing' in AMT. 
 # Please feel free to use and modify it, but attribution is appreciated.
+
 
 #################
 ### Libraries ###
@@ -28,6 +29,7 @@ library(ggpointdensity)
 library(ggpubr)
 library(RColorBrewer)
 
+
 #############
 ### Paths ###
 #############
@@ -36,11 +38,6 @@ PathData <- "Path to /data"
 PathRSaves <- "Path to /RSaves"
 PathFigures <- "~/Path to /Figures"
 
-
-
-PathData <- 'C:/Users/au711252/OneDrive - Aarhus universitet/Documents/BFH/Papers/Artificial Release Experiment/DATA release experiment/Zenodo upload/'
-PathRSaves <- 'C:/repos/4_Projects/Buehler_2024_AMT/RSaves'
-PathFigures <- "C:/repos/4_Projects/Buehler_2024_AMT/Figures"
 
 #################
 ### Functions ###
@@ -55,6 +52,7 @@ lines_sec2xy <- function(sensor,wd,col="lightblue",lwd=2,...){
 	y <- sens[2] - (sens[1] - x)*b
 	lines(c(sens[1],x),c(sens[2],y),col=col,lwd=lwd,...)
 }
+
 
 #################
 ### Campaigns ###
@@ -83,6 +81,7 @@ indMCs <- deparse_timerange(StartMeas, StopMeas)
 	# WS700
 	WS700 <- readRDS(file=file.path(PathRSaves,"WS700.rds"))
 
+
 ############################
 ### Colours for plotting ###
 ############################
@@ -107,6 +106,7 @@ names(VerCols) <- c("IC1","IC2","IC12","IC12E","IC2E","MC")
 	rp_gf25 <- 50
 	rp_gf26 <- 200 # 50 would also be possible
 	r2_thresh <- 98
+
 
 #############
 ### GF-16 ###
@@ -396,6 +396,7 @@ names(VerCols) <- c("IC1","IC2","IC12","IC12E","IC2E","MC")
 
 graphics.off()
 
+
 ################################################################################
 ### Check, if GF26 or GF25 has a concentration step/jump on 23/03/2021 08:00 ###
 ################################################################################
@@ -582,7 +583,6 @@ par(mfrow=c(2,2))
 # ----> as I don't know if GF25 or GF26 had a step change, I match GF18 on GF25 (without the period at the end) and then everyting to GF18 
 
 
-
 ##################################
 ##################################
 #####                        #####
@@ -590,7 +590,6 @@ par(mfrow=c(2,2))
 #####                        #####
 ##################################
 ##################################
-
 
 # only use data with more than 0.5 m/s wind speed
 iWS <- which(GFs10min[,"WS"] > 0.5)
@@ -891,7 +890,6 @@ dt_GF_rev[MC %in% c("IC1","MC","IC2"),{
 ---> an offset correction with the data before (and after) the release might be needed. But first make background concentration in IC2 (saving issues).
 
 
-
 #########################################
 ### Interpolate concentrations in IC2 ###
 #########################################
@@ -931,8 +929,6 @@ GFs10min_revised["22.03.2021 09:20 - 22.03.2021 14:20","GFall"] <- A_t + dC_t * 
 	lines(GFs10min_revised[,"GF26"],col=CH4Cols["GF26"])
 	lines(GFs10min_revised[,"GFall"],col="black",lwd=2)
 	lines(GFs10min_revised["22.03.2021 09:20 - 22.03.2021 14:20","GFall"],col="magenta",lwd=2)
-
-###########################################
 
 graphics.off()
 
@@ -1071,6 +1067,7 @@ iWS <- which(GFs10min[,"WS"] > 0.5)
 	cfsListP5 <- list(GF16 = cfs2616P5, GF17 = cfs2617P5, GF18 = cfs2618P5, GF25 = cfs2625P5, GF26 = c(0,1), GFall =c(0,1))
 	cfsListP6 <- list(GF16 = cfs2616P6, GF17 = cfs2617P6, GF18 = cfs2618P6, GF25 = cfs2625P6, GF26 = c(0,1), GFall =c(0,1))
 		
+
 ####################################
 ### apply correction/calibration ###
 ####################################
@@ -1277,7 +1274,6 @@ dt_GF_rev_MC[MC %in% c("IC1","MC","IC2"),{
     theme(legend.position = "none", text = element_text(size=30))
 }]
 
-
 graphics.off()
 
 
@@ -1289,5 +1285,4 @@ saveRDS(GFs10min_revised[,paste0("GF",c(16:18,25,26,"all"))],file=file.path(Path
 saveRDS(GFs10min_revised_P23[,paste0("GF",c(16:18,25,26,"all"))],file=file.path(PathRSaves,"Conc_P23_10min.rds")) # with the P23 correction
 saveRDS(GFs10min_revised_P6[,paste0("GF",c(16:18,25,26,"all"))],file=file.path(PathRSaves,"Conc_P6_10min.rds")) # with the P6 correction
 saveRDS(GFs10min_revised_P4[,paste0("GF",c(16:18,25,26,"all"))],file=file.path(PathRSaves,"Conc_P4_10min.rds")) # with the P4 correction
-
 

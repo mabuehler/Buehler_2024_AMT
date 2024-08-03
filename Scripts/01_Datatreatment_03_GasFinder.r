@@ -8,12 +8,13 @@
 ##########################################
 
 # Author: Marcel Bühler
-# Date: August 2, 2024
+# Date: August 4, 2024
 # Contact: mb@bce.au.dk or Christoph Häni christoph.haeni@bfh.ch
-# Description: This script reads in the weather station data and makes it ready for further us.
+# Description: This script reads in the GasFinder data and makes it ready for further us.
 #
 # Note: This code was written by Marcel Bühler and is intended to follow the publication 'Applicability of the inverse dispersion method to measure emissions from animal housing' in AMT. 
 # Please feel free to use and modify it, but attribution is appreciated.
+
 
 #################
 ### Libraries ###
@@ -23,12 +24,14 @@ library(ibts)
 library(data.table)
 library(readxl)
 
+
 #############
 ### Paths ###
 #############
 
 PathData <- "Path to /data"   
 PathRSaves <- "Path to /RSaves"
+
 
 #################
 ### Functions ###
@@ -81,6 +84,7 @@ checkTimeDiff <- function(xy,dyn = c(-1, 1)*1E4, Plot = FALSE, xlim = dl + c(-1,
   dl * dt_xy
 }
 
+
 ###################
 ### time offset ###
 ###################
@@ -106,6 +110,7 @@ names(WS2) <- c("T2m_deg","P_hPa")
 ### load path lengths of GasFinder
 load(file.path(PathRSaves,'Geometry.RData'))
 
+
 ########################
 ### Define Campaigns ###
 ########################
@@ -115,6 +120,7 @@ StopMeas <- "26.03.2021 12:00"
 IC1 <- "05.03.2021 to 10.03.2021 18:00"
 MC <- "18.03.2021 11:00 - 21.03.2021 14:00"
 IC2	<- "21.03.2021 14:00 to "
+
 
 #####################################
 ### read GF-30016 or OP-8.6h data ###
@@ -262,7 +268,6 @@ starts <- seq(parse_date_time3(StartMeas, tz = "Etc/GMT-1"),
 	parse_date_time3(StopMeas, tz = "Etc/GMT-1"), by = dt_days)
 ends <- starts + dt_days
 
-#########################
 
 	##### GF26 vs. GF16 (without MC)
 	dyn <- c(-1,1)*200
@@ -291,8 +296,6 @@ ends <- starts + dt_days
 	GF_16_backup <- GF_16
 	attr(GF_16, "st") <- attr(GF_16, "st") + predict(mod16, list(xs=attr(GF_16, "st")))
 	attr(GF_16, "et") <- attr(GF_16, "et") + predict(mod16, list(xs=attr(GF_16, "et")))
-	
-	#########################
 
 
 	#### GF26 vs GF17 (without MC)
@@ -324,9 +327,6 @@ ends <- starts + dt_days
 	attr(GF_17, "et") <- attr(GF_17, "et") + predict(mod17, list(xs=attr(GF_17, "et")))
 
 
-	#########################
-
-
 	#### GF26 vs GF18 (without MC)
 	dyn <- c(-1,1)*200
 
@@ -354,8 +354,6 @@ ends <- starts + dt_days
 	GF_18_backup <- GF_18
 	attr(GF_18, "st") <- attr(GF_18, "st") + predict(mod18, list(xs=attr(GF_18, "st")))
 	attr(GF_18, "et") <- attr(GF_18, "et") + predict(mod18, list(xs=attr(GF_18, "et")))
-	
-	#########################
 
 	
 	#### GF26 vs. GF25 (without MC)
@@ -392,5 +390,4 @@ ends <- starts + dt_days
 #################
 
 save(GF_16,GF_17,GF_18,GF_25,GF_26,file=file.path(PathRSaves,'GFraw.RData'))
-
 

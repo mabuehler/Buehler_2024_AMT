@@ -8,12 +8,13 @@
 ######################################
 
 # Author: Marcel Bühler
-# Date: August 2, 2024
+# Date: August 4, 2024
 # Contact: mb@bce.au.dk or Christoph Häni christoph.haeni@bfh.ch
-# Description: This script reads in the weather station data and makes it ready for further us.
+# Description: This script calculates emissions and makes it ready for further us.
 #
 # Note: This code was written by Marcel Bühler and is intended to follow the publication 'Applicability of the inverse dispersion method to measure emissions from animal housing' in AMT. 
 # Please feel free to use and modify it, but attribution is appreciated.
+
 
 #################
 ### Libraries ###
@@ -23,16 +24,14 @@ library(ibts)
 library(bLSmodelR)
 library(RColorBrewer)
 
+
 #############
 ### Paths ###
 #############
 
 PathData <- "Path to /data"		
 PathRSaves <- "Path to /RSaves"
-Cat.Path <- "Path to /Catalogs"
 
-PathData <- 'C:/Users/au711252/OneDrive - Aarhus universitet/Documents/BFH/Papers/Artificial Release Experiment/DATA release experiment/Zenodo upload/'
-PathRSaves <- 'C:/repos/4_Projects/Buehler_2024_AMT/RSaves'
 
 #################
 ### Functions ###
@@ -51,6 +50,7 @@ calcQ <- function(data, sens, bgdname, new_sens = sens, source = FALSE, nthresh 
 			}) / ifelse(get(paste0("N_TD_", sens)) <= nthresh,
 			NA_real_, get(paste0("CQ_",sens)))*mult]
 	}
+
 
 ###################################
 ### Colours and unit conversion ###
@@ -129,11 +129,13 @@ Y <- "P23" # using period 2 and 3  <-------------------- the one to go!
 bLS <- copy(get(paste("bLS",X,R,sep="_")))
 Conc_GFs <- copy(get(paste("Conc",Y,R,sep="_")))
 
+
 ####################
 ### Calculate CQ ###
 ####################
 
 bLS[,c("CQ","CQ_se") := list(CE/SourceArea,CE_se/SourceArea)]
+
 
 ########################
 ### dcast to Sensors ###
@@ -142,6 +144,7 @@ bLS[,c("CQ","CQ_se") := list(CE/SourceArea,CE_se/SourceArea)]
 bLS_cast_raw <- dcast(bLS, st + et + rn + Source + SourceArea + Ustar + L + Zo + Sonic +
 	sUu + sVu + sWu + bw + C0 + N0 + WD + sd_WD + U_sonic +	z_canopy + T_sonic +
 	Campaign  ~ Sensor, value.var = list("CE","CE_se","CQ", "CQ_se","N_TD"))
+
 
 ###################################
 ### add all remaining variables ###
@@ -175,6 +178,7 @@ CC_Sensor_pl <- pool(CC_Sensor,granularity=paste0(R,"s"),st="06.03.2021 08:30")
 bLS_cast <- merge(bLS_GF_WS_MFC, cbind(CC_Sensor_pl, st=st(CC_Sensor_pl))["18.03.2021 to "], by ="st", all=TRUE)
 # bLS_cast <- merge(bLS_GF_WS_MFC, cbind(CC_Sensor, st=st(CC_Sensor))["18.03.2021 to "], by="st", all=TRUE)
 
+
 ###################################
 ### add some additional columns ###
 ###################################
@@ -202,6 +206,7 @@ calcdC(bLS_cast, "GF18", "GFall",subset = bLS_cast[,Campaign == "IC2"])
 calcdC(bLS_cast, "GF25", "GFall",subset = bLS_cast[,Campaign == "IC2"])
 calcdC(bLS_cast, "GF26", "GFall",subset = bLS_cast[,Campaign == "IC2"])
 
+
 ####################################
 ### Calculate emissions [kg / h] ###
 ####################################
@@ -217,12 +222,15 @@ calcQ(bLS_cast, "GF18", "GFall",subset = bLS_cast[,Campaign == "IC2"])
 calcQ(bLS_cast, "GF25", "GFall",subset = bLS_cast[,Campaign == "IC2"])
 calcQ(bLS_cast, "GF26", "GFall",subset = bLS_cast[,Campaign == "IC2"])
 
+
 ###################################################
 ### save object that is now ready for filtering ###
 ###################################################
+
 
 saveRDS(bLS_cast,file=file.path(PathRSaves,paste0("Emiss_",X,"_",Y,"_",R,".rds")))
 
 ###################################################
 
 rm(list = ls())
+

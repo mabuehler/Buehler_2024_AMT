@@ -8,12 +8,13 @@
 ######################################################
 
 # Author: Marcel Bühler
-# Date: August 2, 2024
+# Date: August 4, 2024
 # Contact: mb@bce.au.dk or Christoph Häni christoph.haeni@bfh.ch
-# Description: This script reads in the weather station data and makes it ready for further us.
+# Description: This script reads in the weather station data and makes it ready for further use.
 #
 # Note: This code was written by Marcel Bühler and is intended to follow the publication 'Applicability of the inverse dispersion method to measure emissions from animal housing' in AMT. 
 # Please feel free to use and modify it, but attribution is appreciated.
+
 
 #################
 ### Libraries ###
@@ -23,6 +24,7 @@ library(ibts)
 library(data.table)
 library(readxl)
 
+
 #############
 ### Paths ###
 #############
@@ -30,12 +32,14 @@ library(readxl)
 PathData <- "Path to /data"		
 PathRSaves <- "Path to /RSaves"
 
+
 #################
 ### Functions ###
 #################
 
 source('https://raw.githubusercontent.com/hafl-gel/gel-scripts/main/weatherstation-functions.r')
 source(file.path(file.path(dirname(PathRSaves),"Other/shift_dt.r")))
+
 
 ###################
 ### time offset ###
@@ -47,6 +51,7 @@ setnames(time_offset,c("Inst","RefCET","DeviceTime"))
 time_offset[,RefTime := parse_date_time3(RefCET,tz="CET")]
 time_offset[,DevTime := parse_date_time3(DeviceTime,tz="Etc/GMT-1")]
 setkey(time_offset, Inst)
+
 
 ####################################
 ### read data and data treatment ###
@@ -79,8 +84,10 @@ WS2[[1]]$data <- WS700_2_d1["05.03.2021 11:10 - 26.03.2021 09:10"]
 WS2[[2]]$data <- WS700_2_d2["05.03.2021 11:10 - 26.03.2021 09:10"]
 WS2[[3]]$data <- WS700_2_d3["05.03.2021 - 27.03.2021"]
 
+
 #################
 ### save data ###
 #################
 
 saveRDS(WS2,file=paste0(PathRSaves,"/WS700.rds"))
+

@@ -8,9 +8,9 @@
 ###############################################################
 
 # Author: Marcel Bühler
-# Date: August 2, 2024
+# Date: August 4, 2024
 # Contact: mb@bce.au.dk or Christoph Häni christoph.haeni@bfh.ch
-# Description: This script reads in the weather station data and makes it ready for further us.
+# Description: This script reads in the Mass flow controller (MFC) and pressure sensor data and makes it ready for further us.
 #
 # Note: This code was written by Marcel Bühler and is intended to follow the publication 'Applicability of the inverse dispersion method to measure emissions from animal housing' in AMT. 
 # Please feel free to use and modify it, but attribution is appreciated.
@@ -24,12 +24,14 @@ library(ibts)
 library(data.table)
 library(readxl)
 
+
 #############
 ### Paths ###
 #############
 
 PathData <- "Path to /data"   
 PathRSaves <- "Path to /RSaves"
+
 
 ########################
 ### Define Campaigns ###
@@ -39,13 +41,14 @@ IC1 <- "05.03.2021 to 10.03.2021 18:00"
 MC <- "18.03.2021 11:00 - 21.03.2021 14:00"
 IC2	<- "21.03.2021 14:00 to "
 
-# load Weather station
-WS700_2 <- readRDS(file.path(PathRSaves,"WS700.rds"))
 
-
-############################
-### Mass Flow Controller ###
-############################
+######################################
+######################################
+#####                            #####
+#####    Mass flow controller    #####
+#####                            #####
+######################################
+######################################
 
 MFC_dir <- dir(file.path(PathData,"MFC"), full.names = TRUE)
 MFC_list <- lapply(MFC_dir[1:5], fread)
@@ -71,6 +74,7 @@ MFC_dt2[!is.na(Q_MFC),Q_MFCex := Q_MFC]
 MFC_dt2[st> "2021-03-20 03:53" & st< "2021-03-20 04:05",Q_MFCex := 6.0225] # Flow was not logged
 MFC <- as.ibts(MFC_dt2,st='st',et='et')
 
+
 #################
 ### save data ###
 #################
@@ -78,7 +82,10 @@ MFC <- as.ibts(MFC_dt2,st='st',et='et')
 saveRDS(MFC,file.path(PathRSaves,"MFC.rds"))
 
 
-#### check, if the released gas fits with the amount of gas inside the cyclinder bundle
+####################################################################################################
+### Check, if the released CH4 fits with the amout of gas originally inside the cyclidner bundle ###
+####################################################################################################
+
 # pool to 1 min
 plot(MFC["19.03.2021 to ","Flow_MFC_lnmin"]) # check if timeperiod is correct
 plot(MFC["22.03.2021 to ","Flow_MFC_lnmin"]) # check if timeperiod is correct
@@ -100,9 +107,14 @@ colSums(MFC[" to 19.03.2021","Flow_MFC_lnmin"],na.rm=TRUE) # select the correct 
 # 11456.5 nl --> 11.4 m3. That is fine as we expect around 11 m3
 
 
-#######################
-### Pressure sensor ###
-#######################
+#################################
+#################################
+#####                       #####
+#####    Pressure sensor    #####
+#####                       #####
+#################################
+#################################
+
 
 CC_dir <- dir(file.path(PathData,"Pressuresensor"), full.names = TRUE)
 CC_list <- lapply(CC_dir[1:5], fread,skip=5,sep=";",fill=TRUE,header=TRUE,na.strings=c(",,","#NV"))
@@ -133,14 +145,9 @@ CC_Sensor["19.03.2021	- 22.03.2021 12:30","V_Cylinder"] <- 0.6
 saveRDS(CC_Sensor,file.path(PfadRSaves,"CC_Sensor_raw.rds"))
 
 
-#################################################
-#################################################
-#####                                       #####
-#####    check if things are alright etc    #####
-#####                                       #####
-#################################################
-#################################################
-
+#######################################
+### check if things are alright etc ###
+#######################################
 
 ## pool to 10min
 CC_Sensor_10min <- pool(CC_Sensor,granularity="10mins",st="06.03.2021 08:40")
@@ -162,6 +169,8 @@ for(i in 1:length(CC_Sensor_10min$V_Cylinder)){
 #####################
 ### some plotting ###
 #####################
+
+WS700_2 <- readRDS(file.path(PathRSaves,"WS700.rds"))
 
 plot(MFC[MC,"Q_MFC"],ylim=c(-10,10))
 lines(CC_Sensor_10min[,"Q_CC"],col="red")

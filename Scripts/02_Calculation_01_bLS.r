@@ -8,12 +8,13 @@
 ########################################
 
 # Author: Marcel Bühler
-# Date: August 2, 2024
+# Date: August 4, 2024
 # Contact: mb@bce.au.dk or Christoph Häni christoph.haeni@bfh.ch
-# Description: This script reads in the weather station data and makes it ready for further us.
+# Description: This script is made to run the bLSmodelR on the number cruncher of the University of Applied Sciences BFH. The code should also work on your computer but you have to adopt the number of cores.
 #
 # Note: This code was written by Marcel Bühler and is intended to follow the publication 'Applicability of the inverse dispersion method to measure emissions from animal housing' in AMT. 
 # Please feel free to use and modify it, but attribution is appreciated.
+
 
 #################
 ### Libraries ###
@@ -21,6 +22,7 @@
 
 library(bLSmodelR)
 library(ibts)
+
 
 #############
 ### Paths ###
@@ -30,6 +32,7 @@ PathData <- "Path to /data"
 PathRSaves <- "Path to /RSaves"
 Cat.Path <- paste0(PathData,"/Catalogs")
 
+
 #################
 ### Campaigns ###
 #################
@@ -37,11 +40,11 @@ Cat.Path <- paste0(PathData,"/Catalogs")
 MC <- "18.03.2021 11:00 - 21.03.2021 14:00"
 IC2	<- "21.03.2021 14:00 to 26.03.2021 12:00"
 
+
 #################
 ### load data ###
 #################
 
-### load Sonic data and Geometry
 load(file = file.path(PathRSaves,"Sonics_10min.RData"))
 load(file = file.path(PathRSaves, "Geometry.RData"))
 
@@ -65,7 +68,7 @@ Sonic2_MC <- Sonic2[MC]
 
 
 N_traj <- 1E6
-ncores <- 88
+ncores <- 88 # numbers of cores used
 MaxFetch <- 400
 
 indSub <- " to "
@@ -126,7 +129,6 @@ if(inherits(Res_MC,"try-error")){
   system("echo \"Subject: bLS Run MC done\" | sendmail (enter your email address)")
 	saveRDS(Res_MC,file=paste0(PathRSaves,"/bLS_MC_10min.rds"))
 }
-##
 
 
 ###############
@@ -203,10 +205,7 @@ if(inherits(Res_IC2,"try-error")){
   system("echo \"Subject: bLS Run  IC2 done\" | sendmail (enter your email address)")
 	saveRDS(Res_IC2,file=paste0(PathRSaves,"/bLS_IC2_10min.rds"))
 }
-
-
-
-
+##
 
 
 ################################################
@@ -364,6 +363,4 @@ if(inherits(Res_2_WDvar_10deg,"try-error")){
 	saveRDS(Res_2_WDvar_10deg,file=paste0(PathRSaves,"/bLS_Sonic2_WDvar_10deg_10min.rds"))
 }
 ##
-
-
 

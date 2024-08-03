@@ -8,12 +8,13 @@
 #####################################################
 
 # Author: Marcel Bühler
-# Date: August 2, 2024
+# Date: August 4, 2024
 # Contact: mb@bce.au.dk or Christoph Häni christoph.haeni@bfh.ch
-# Description: This script reads in the weather station data and makes it ready for further us.
+# Description: This script applies the quality filtering and makes the data ready for further us.
 #
 # Note: This code was written by Marcel Bühler and is intended to follow the publication 'Applicability of the inverse dispersion method to measure emissions from animal housing' in AMT. 
 # Please feel free to use and modify it, but attribution is appreciated.
+
 
 #################
 ### Libraries ###
@@ -34,6 +35,7 @@ PathData <- "Path to /data"
 PathRSaves <- "Path to /RSaves"
 PathFigures <- 'Path to /Figures'
 
+
 #################
 ### Functions ###
 #################
@@ -53,7 +55,6 @@ lines_sec2xy <- function(xyMK,sensor,node=1,wd,col="lightblue",lwd=2,...){
 ###################
 ### Definitions ###
 ###################
-
 
 	Col_CH4 <- "#1e88e5"
 	# display.brewer.all()
@@ -78,6 +79,7 @@ lines_sec2xy <- function(xyMK,sensor,node=1,wd,col="lightblue",lwd=2,...){
 	IC1 <- "05.03.2021 to 10.03.2021 18:00"
 	MC <- "18.03.2021 11:00 - 21.03.2021 14:00"
 	IC2	<- "21.03.2021 14:00 to "
+
 
 #################
 ### load data ###
@@ -106,6 +108,7 @@ Emiss_Result <- merge(time_vect,Emiss_Result_raw,by="st",all=TRUE)
 
 setkey(Emiss_Result,st)
 
+
 ##########################
 ### create XY Geometry ###
 ##########################
@@ -113,6 +116,7 @@ setkey(Emiss_Result,st)
 Sensors_MC_xy <- ch_to_map(STO_Map,Sensors_MC)
 Sensors_IC2_xy <- ch_to_map(STO_Map,Sensors_IC2)
 Source_xy <- ch_to_map(STO_Map,Source)
+
 
 #########################
 ### plot and overview ###
@@ -125,11 +129,13 @@ lines(Q_GF25 ~ st, Emiss_Result[Campaign %in% c("MC")],col=CH4Cols["GF25"])
 lines(Q_GF26 ~ st, Emiss_Result[Campaign %in% c("MC")],col=CH4Cols["GF26"])
 lines(Q_MFC ~ st, Emiss_Result[Campaign %in% c("MC")],col="black",lwd=2)
 
+
 ##################################
 ### only use data with NE wind ###
 ##################################
 
 Result_raw <- Emiss_Result[Wind_dir == "NE" | is.na(Wind_dir)]
+
 
 ################################################
 ### add missing times caused by power outage ###
@@ -357,6 +363,7 @@ iWDM <- list(
 ##################################
 ### Emiss (unfiltered) vs. WD  ###
 ##################################
+
 graphics.off()
 
 par(mfrow=c(2,5),mar=c(4,4,0,0))
@@ -804,6 +811,7 @@ plot(WD_WS2 ~ st, Result[Campaign %in% c("MC") & Sonic == "SonicB"],type="l",col
 
 graphics.off()
 
+
 ####################################################
 ### Filter again the WD as it is not good enough ###
 ####################################################
@@ -853,7 +861,6 @@ iWD_refined <- list(
 )
 
 
-
 ### Filter according to map and corresponding sonics as a reference for the wind direction
 
 # MC
@@ -868,8 +875,8 @@ for(x in c("GF16","GF17","GF18","GF25")){
 # 		grep(paste0("Q_",x),names(Result),value=TRUE)	 := NA_real_ ]
 # }
 
-
 ---> maybe filter also CQ?
+
 
 #########################
 ### Look at CQ values ###
@@ -907,8 +914,12 @@ abline(h=0, v=CQ_thresh)
 
 ---> CQ is not reasonable as for each GF and Sonic another threshold needs to be used, which is too arbitary.
 
-
 graphics.off()
-###########################
+
+
+#################
+### save data ###
+#################
 
 saveRDS(Result,file=file.path(PathRSaves,"Results_orig_P23.rds"))
+

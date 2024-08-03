@@ -1,36 +1,37 @@
 
-
-#######################
-#######################
-#####             #####
-#####    Plots    #####
-#####             #####
-#######################
-#######################
+##############################################
+##############################################
+#####                                    #####
+#####    Creation of plots and tables    #####
+#####                                    #####
+##############################################
+##############################################
 
 # Author: Marcel Bühler
-# Date: August 2, 2024
+# Date: August 4, 2024
 # Contact: mb@bce.au.dk or Christoph Häni christoph.haeni@bfh.ch
-# Description: This script reads in the weather station data and makes it ready for further us.
+# Description: With this scirpt one can create all the plots and values of the tables in the publication, the supplement and the initial submission.
 #
 # Note: This code was written by Marcel Bühler and is intended to follow the publication 'Applicability of the inverse dispersion method to measure emissions from animal housing' in AMT. 
 # Please feel free to use and modify it, but attribution is appreciated.
+
 
 #################
 ### Libraries ###
 #################
 
+## there might be some libraries that are not necessary.
 library(ibts)
 library(RgoogleMaps)
 library(bLSmodelR)
 library(RColorBrewer)
 library(ggplot2)
 library(ggthemes)
-library(ggpointdensity)
 library(ggpubr)
-library(shape)
-library(plotly)
-library(viridis)
+library(ggpointdensity) # this might not be necessary
+library(shape) # this might not be necessary
+library(plotly) # this might not be necessary
+
 
 #############
 ### Paths ###
@@ -39,55 +40,21 @@ library(viridis)
 PathData <- "Path to /data"		
 PathRSaves <- "Path to /RSaves"
 PathFigures <- 'Path to /Figures'
-Cat.Path <- 'Path to /Catalogs'
 
 PathData <- 'C:/Users/au711252/OneDrive - Aarhus universitet/Documents/BFH/Papers/Artificial Release Experiment/DATA release experiment/Zenodo upload/'
 PathRSaves <- 'C:/repos/4_Projects/Buehler_2024_AMT/RSaves'
 PathFigures <- 'C:/repos/4_Projects/Buehler_2024_AMT/Figures'
 
+
 #################
 ### Functions ###
 #################
-
-lines_sec2xy <- function(xyMK,sensor,node=1,wd,col="lightblue",lwd=2,...){
-	# browser()
-	GF <- xyMK[xyMK[,1] %in% sensor,]
-	sens <- as.numeric(GF[GF[,3] == node,4:5])
-	b <- tan((90 - wd)/180*pi)
-	# x <- if(wd <= 180) 600 else -600
-	x <- if(wd <= 180) 1E6 else -1E6
-	y <- sens[2] - (sens[1] - x)*b
-	lines(c(sens[1],x),c(sens[2],y),col=col,lwd=lwd,...)
-}
 
 source("https://raw.githubusercontent.com/hafl-gel/gel-scripts/main/windrose.r")
 source("https://raw.githubusercontent.com/hafl-gel/gel-scripts/main/wgs84-ch1903.r")
 source(file.path(file.path(dirname(PathRSaves),"Other/contourXY.r")))
 source(file.path(file.path(dirname(PathRSaves),"Other/contourXZ.r")))
 
-
-###################
-### Definitions ###
-###################
-
-	Col_CH4 <- "#1e88e5"
-	CH4Cols_GF <- CH4Cols_OP <- CH4Cols <- brewer.pal(5,"Dark2")
-	names(CH4Cols) <- paste0("GF",c(16:18,25:26))
-	names(CH4Cols_OP) <- paste0("OP-",c(1:5))
-	names(CH4Cols_GF) <- paste0("GF-",c('UW','50m','100m','150m','200m'))
-
-	DUACols <- SonicCols <- brewer.pal(4,"BrBG")
-	names(SonicCols) <- paste0("Sonic",c("A","D","B","C"))
-	names(DUACols) <- paste0("3DUA-",c('UW','50m','100m','150m'))
-
-	colSonics <- c('#F8766D','#7CAE00','#00BFC4','#C77CFF')
-	names(colSonics) <- c('UW','50m','100m','150m')
-
-	WDmCols <- colorRampPalette(c("#00ff00", "#003300"))(15)
-	WDpCols <- colorRampPalette(c("#00ffff", "#0033ff"))(15)
-	WDvarCols <- c(WDmCols,"red",WDpCols)
-	names(WDvarCols) <- paste0("SonicB",c(paste0("_m",1:15),"_0",paste0("_p",1:15)))
-	
 
 #################
 ### Campaigns ###
@@ -96,6 +63,7 @@ source(file.path(file.path(dirname(PathRSaves),"Other/contourXZ.r")))
 	IC1 <- "05.03.2021 to 10.03.2021 18:00"
 	MC <- "18.03.2021 11:00 - 21.03.2021 14:00"
 	IC2	<- "21.03.2021 14:00 to "
+
 
 #################
 ### load data ###
@@ -125,11 +93,6 @@ source(file.path(file.path(dirname(PathRSaves),"Other/contourXZ.r")))
 	## Emissions of WD variation.
 	# Result_var <- readRDS(file=file.path(PathRSaves,"Result_variation.rds")) # this is not provided as not used in the final publication. But you can calculate it with the provided data.
 	
-	
-	
-
-
-
 
 ##########################
 ### create XY Geometry ###
@@ -141,6 +104,7 @@ Tree_xy <- ch_to_map(STO_Map,Tree)
 
 centre <- colMeans(Source[,c(2,3)])
 Sonics_MC <- Sensors_MC[Sensors_MC[,1] %in% c('SonicA','SonicB','SonicC','Sonic2'),]
+
 
 #######################
 ### Weather station ###
@@ -281,6 +245,17 @@ coeff_CC <- CC_dt[,max(Press_CC,na.rm=TRUE) / 9]
 #####################################
 #####################################
 
+#############
+### Figure 1:
+
+# this is a picture
+
+
+#############
+### Figure 2:
+
+# this is a schematic drawn with a design program (Inkscape)
+
 
 ######
 ### Figure 3: Schematic overview of the measurement setup during the measurement campaign. OP: open-path device. UA: 3D ultrasonic anemometer. UW: upwind. The numbers behind the OP and UA represent the fetch.
@@ -365,6 +340,7 @@ lines(x=c(xl-20,xl+100,xl+100),y=c(yl-80,yl-80,yl+20))
 dev.off()
 }
 
+
 #############
 ### Figure 4: Weather conditions as 10 min averages measured with the on-site weather station (temperature) and the UA-UW (wind direction and wind speed) during the measurement campaign. The grey shaded areas indicate the times during which CH4 was released.
 
@@ -388,7 +364,6 @@ WS_TempUA <- WS2_dt[st >= parse_date_time3("18.03.2021 20:00",tz='Etc/GMT-1') & 
 	 axis.text.x = element_blank(), axis.ticks.x = element_blank(),plot.margin = unit(c(0.2, 1.05, -2, 0.05), "cm"))
  }]
 
-
 ## Wind speed and wind direction from UA-UW
 Fig_WD_UAUW <- Result[Sonic == 'SonicC' & st >= parse_date_time3("19.03.2021",tz='Etc/GMT-1') & st <= parse_date_time3('21.03.2021',tz='Etc/GMT-1'),{
 	ggplot(.SD,aes(x=st)) +
@@ -406,7 +381,6 @@ Fig_WD_UAUW <- Result[Sonic == 'SonicC' & st >= parse_date_time3("19.03.2021",tz
  	theme(panel.grid.major = element_line(size = 0.6),panel.grid.minor = element_line(size = 0.3), 
  		axis.text.x = element_blank(), axis.ticks.x = element_blank(),plot.margin = unit(c(-3, 1.05, -3, 0.05), "cm"))
 }]
-
 
 Fig_WS_UAUW <- Result[Sonic == 'SonicC' & st >= parse_date_time3("19.03.2021",tz='Etc/GMT-1') & st <= parse_date_time3('21.03.2021',tz='Etc/GMT-1'),{
 	ggplot(.SD,aes(x=st,y=U_sonic)) +
@@ -426,7 +400,6 @@ Fig_WS_UAUW <- Result[Sonic == 'SonicC' & st >= parse_date_time3("19.03.2021",tz
 Meteo_MK_WSUA <- ggarrange(WS_TempUA,Fig_WD_UAUW,Fig_WS_UAUW,ncol=1,align='hv')
 
 ggsave(file.path(PathFigures, "Figure_4.png"), Meteo_MK_WSUA, width = 30, height = 30/1.8, units="cm")
-
 
 
 #############
@@ -488,7 +461,6 @@ annotate("text", x = 0.983, y = 0.23, label = 'atop(bold("(b)"))', color = "blac
 ggsave(file.path(PathFigures,"Figure_5.png"),Fig_5,width = 30, height = 30/2, units="cm")
 
 
-
 #############
 ### Figure 6: Absolute difference in the wind direction between the three downwind UAs (UA-DW) and the upwind UA (UA-UW) recorded during the entire measurement campaign, given as 10 min data. The exact locations of the UAs are given in Fig. 3.
 
@@ -507,8 +479,6 @@ Fig_dWD_10min_woT <- SonicAll_10min_cast[MC == "MC" & top_variable == 'WD' & com
 }]
 
 ggsave(file.path(PathFigures, "Figure_6.png"), Fig_dWD_10min_woT, width = 20, height = 20,units="cm")
-
-
 
 
 ####################################
@@ -573,7 +543,6 @@ Conc_melt[!is.na(MFC) & !is.na(dCppm),.(N=.N),by=.(variable)] # Number of measur
 ############
 ### Table 2: Median recovery rates with standard deviation, median concentration enhancements (1C) with standard deviation, and number of 10 min intervals (N) for all OPs using the data from the UA-UW for the two releases in the MC. Daytime release (unstable atmospheric conditions) and nighttime release (stable atmospheric conditions).
 
-
 ## recovery rates
 Result_R <- data.table(rbind(
  	cbind(melt(Result[Sonic_ord2 == "UA-UW"], id.vars=c('st','L','U_sonic','Ustar','WD'),measure.vars=c("R_GF16","R_GF17","R_GF18","R_GF25","R_GF26"), variable.name="R_GF", value.name="Recovery"),Sonic="UA-UW")
@@ -620,20 +589,12 @@ dt_Conc[!is.na(Rate) & Campaign == 'MC',.(mean_ppmm=round(mean(dCppm*100),1),med
 ############
 ### Table 3: Mean wind direction (WD), mean wind speed (WS), mean friction velocity (u), and the mean of the inverse of the Obukhov length (L) recorded by the UA during the two release phases in the MC.
 
-
 Result[L > 0, stability := 'stable']
 Result[L < 0, stability := 'unstable']
 
 Result[!is.na(Sonic_ord) & Campaign == "MC" & Q_MFCex > 4, .(meanWS=round(mean(U_sonic,na.rm=TRUE),1),
 	meanWD=round((360 + atan2(mean(U_sonic * sin(WD * pi/180),na.rm=TRUE),mean(U_sonic * cos(WD * pi/180),na.rm=TRUE)) * 180/pi) %% 360,1),
 	meanUstar=round(mean(Ustar,na.rm=TRUE),2),meanL=round(mean(1/L,na.rm=TRUE),2)),by=.(stability,Sonic_ord)][order(-stability,Sonic_ord)]
-
-## only sonic
-# Result[!is.na(Sonic_ord) & Campaign == "MC" & Q_MFCex > 4, .(meanWS=round(mean(U_sonic,na.rm=TRUE),1),
-# 	meanWD=round((360 + atan2(mean(U_sonic * sin(WD * pi/180),na.rm=TRUE),mean(U_sonic * cos(WD * pi/180),na.rm=TRUE)) * 180/pi) %% 360,1),
-# 	meanUstar=round(mean(Ustar,na.rm=TRUE),2),meanL=round(mean(1/L,na.rm=TRUE),2)),by=Sonic_ord]
-
-
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -1110,7 +1071,6 @@ dev.off()
 }
 
 
-
 ###################################
 ###################################
 #####                         #####
@@ -1120,6 +1080,7 @@ dev.off()
 ###################################
 
 # no tables that need code. For Table S1 see Apply filter script
+
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -1143,10 +1104,12 @@ dev.off()
 
 # photo
 
+
 ##############################
 ### Figure 2 - initial submit:
 
 # schematic
+
 
 ##############################
 ### Figure 3 - initial submit:
@@ -1249,7 +1212,6 @@ WS_TempMK <- WS2_dt[st >= parse_date_time3("18.03.2021 11:00",tz='Etc/GMT-1') & 
  	theme(panel.grid.major = element_line(size = 0.6),panel.grid.minor = element_line(size = 0.3))
  }]
 
-
 WS_WDMK <- WS2_dt[st >= parse_date_time3("18.03.2021 11:00",tz='Etc/GMT-1') & st <= parse_date_time3('21.03.2021 14:00',tz='Etc/GMT-1'),{
  	ggplot(.SD,aes(x=st,y=WD_WS)) +
  	geom_rect(aes(xmin=parse_date_time3("19.03.2021 10:20",tz="Etc/GMT-1"),xmax=parse_date_time3("19.03.2021 16:50",tz="Etc/GMT-1"),ymin=-Inf,ymax=Inf),fill='grey95',alpha=0.15) +
@@ -1263,7 +1225,6 @@ WS_WDMK <- WS2_dt[st >= parse_date_time3("18.03.2021 11:00",tz='Etc/GMT-1') & st
  	theme(panel.grid.major = element_line(size = 0.6),panel.grid.minor = element_line(size = 0.3))
  }]
 
-
 WS_WSMK <- WS2_dt[st >= parse_date_time3("18.03.2021 11:00",tz='Etc/GMT-1') & st <= parse_date_time3('21.03.2021 14:00',tz='Etc/GMT-1'),{
  	ggplot(.SD,aes(x=st,y=WS)) +
  	geom_rect(aes(xmin=parse_date_time3("19.03.2021 10:20",tz="Etc/GMT-1"),xmax=parse_date_time3("19.03.2021 16:50",tz="Etc/GMT-1"),ymin=-Inf,ymax=Inf),fill='grey95',alpha=0.15) +
@@ -1275,7 +1236,6 @@ WS_WSMK <- WS2_dt[st >= parse_date_time3("18.03.2021 11:00",tz='Etc/GMT-1') & st
  	theme_bw(base_size=18) +
  	theme(panel.grid.major = element_line(size = 0.6),panel.grid.minor = element_line(size = 0.3))
  }]
-
 
 Meteo_MK <- ggarrange(WS_TempMK,WS_WDMK,WS_WSMK,ncol=1,align="hv")
 ggsave(file.path(PathFigures, "Initial submit/Initial submit - Fig. 4.png"), Meteo_MK, width = 30, height = 30/1.57, units="cm")
@@ -1420,7 +1380,6 @@ rect(xleft=xl-dxl,xright=xl+dxl,ybottom=yl-dyl*3-4,ytop=yl-dyl*3+4,col="grey95")
 text(x=rep(xl+dxl*2,4),y=c(yl,yl-dyl,yl-dyl*2,yl-dyl*3),labels=c("OP","UA","Tree","Barn"),pos=4,cex=1.5)
 lines(x=c(xl-dxl*2,xl-dxl*2,xl+200),y=c(yl-100,yl+dyl,yl+dyl))
 
-
 ## Sonic2
 par(mar=c(3.7,3.7,0,0))
 plot(type="n",1, xlim=c(centre[1]-220,centre[1]+60),ylim=c(centre[2]-220,centre[2]+20),xaxt="n",yaxt="n", xlab="",ylab="",asp=1)
@@ -1490,7 +1449,6 @@ legend("bottomright",legend=c("(0.06,0.3]","(0.3,0.6]","(0.6,3]","(3,5]",">5"),f
 lines(x=c(bx+35,bx+35,bx+200),y=c(by-100,by+85,by+85))
 
 dev.off()
-
 }
 
 
@@ -1537,7 +1495,6 @@ ggsave(file.path(PathFigures,"Initial submit/Initial submit - Fig. 8.png"),Fig_r
 # the legned of the plot needs to be added manualy.
 
 
-
 ###########################################
 ###########################################
 #####                                 #####
@@ -1546,13 +1503,11 @@ ggsave(file.path(PathFigures,"Initial submit/Initial submit - Fig. 8.png"),Fig_r
 ###########################################
 ###########################################
 
-
 ############
 ### Table 1:
 
 Result[L > 0, stability := 'stable']
 Result[L < 0, stability := 'unstable']
-
 
 # during entire MC
 Result[!is.na(Sonic_ord) & Campaign == "MC", .(meanWS=round(mean(U_sonic,na.rm=TRUE),1),
@@ -1606,7 +1561,6 @@ round(mean(data.loss[grep('Sonic2',NAME),loss]),2) # in the manuscript was 18%, 
 round(mean(data.loss[grep('SonicB',NAME),loss]),2) # in the manuscript was 18%, which is probably wrong
 
 
-
 ############
 ### Table 3:
 
@@ -1627,5 +1581,4 @@ Result_R[st > "2021-03-19 10:30" & st < "2021-03-20 07:00" & !is.na(OPold),
 .(median=round(median(Recovery,na.rm=TRUE),2)),by=.(Sonic)][order(Sonic)]
 Result_R[st > "2021-03-19 10:30" & st < "2021-03-20 07:00" & !is.na(OPold),
 .(median=round(median(Recovery,na.rm=TRUE),2)),by=.(OPold)][order(OPold)]
-
 
