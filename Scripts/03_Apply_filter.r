@@ -10,7 +10,7 @@
 # Author: Marcel Bühler
 # Date: August 4, 2024
 # Contact: mb@bce.au.dk or Christoph Häni christoph.haeni@bfh.ch
-# Description: This script applies the quality filtering and makes the data ready for further us.
+# Description: This script applies the quality filtering and makes the data ready for further use.
 #
 # Note: This code was written by Marcel Bühler and is intended to follow the publication 'Applicability of the inverse dispersion method to measure emissions from animal housing' in AMT. 
 # Please feel free to use and modify it, but attribution is appreciated.
@@ -91,9 +91,14 @@ lines_sec2xy <- function(xyMK,sensor,node=1,wd,col="lightblue",lwd=2,...){
 	STO_Map <- ReadMapTile(file.path(PathFigures,"STO_GoogleMaps.png"))
 	# Emission results
 	Emiss_Result_raw <- readRDS(file = file.path(PathRSaves, "Emiss_orig_P23_10min.rds")) # <-------------------- the one to use
-	# Emiss_Result_raw <- readRDS(file = file.path(PathRSaves, "Emiss_orig_P6_10min.rds"))
-	# Emiss_Result_raw <- readRDS(file = file.path(PathRSaves, "Emiss_orig_P4_10min.rds"))
-	# Emiss_Result_raw <- readRDS(file = file.path(PathRSaves, "Emiss_orig_wo_10min.rds"))
+
+	## not needed. Only necessary if you wanna reproduce a plot in the initial submission
+	# Emiss_Result_orig_wo <- readRDS(file = file.path(PfadRSaves, "Emiss_orig_wo_10min.rds"))
+	# Emiss_Result_orig_P23 <- readRDS(file = file.path(PfadRSaves, "Emiss_orig_P23_10min.rds"))
+	# Emiss_Result_orig_P6 <- readRDS(file = file.path(PfadRSaves, "Emiss_orig_P6_10min.rds"))
+	# Emiss_Result_orig_P4 <- readRDS(file = file.path(PfadRSaves, "Emiss_orig_P4_10min.rds"))
+	# Emiss_Result_WDvar_P23 <- readRDS(file = file.path(PfadRSaves, "STO_Emiss_WDvar_P23_10min.rds"))
+	# Emiss_Result_WDvar_P23 <- readRDS(file = file.path(PfadRSaves, "STO_Emiss_WDvar_P6_10min.rds"))
 
 
 ################################
@@ -922,4 +927,253 @@ graphics.off()
 #################
 
 saveRDS(Result,file=file.path(PathRSaves,"Results_orig_P23.rds"))
+
+
+
+#################################################################
+#################################################################
+#####                                                       #####
+#####    Apply filter to wind direction variation object    #####
+#####                                                       #####
+#################################################################
+#################################################################
+
+## this is only needed to make the plot in the initial submission and has otherwise no furhter use.
+## It can also be used to filter the different concentration offset corrections.
+## Belwo some examples are given. Just adapt the code to whatever you calculated in the script 02_Calculation_03_Emissions.r
+
+
+########################################
+### bind the different runs together ###
+########################################
+
+## for Concentration offset correction additional column is needed
+Emiss_Result_orig_wo[,Conc_corr := "wo"]
+Emiss_Result_orig_P23[,Conc_corr := "P23"]
+Emiss_Result_orig_P6[,Conc_corr := "P6"]
+Emiss_Result_orig_P4[,Conc_corr := "P4"]
+Emiss_Result_WDvar_P23[,Conc_corr := "P23"]
+Emiss_Result_WDvar_P6[,Conc_corr := "P6"]
+
+Emiss_Result_var <- rbind(Emiss_Result_orig_wo,Emiss_Result_orig_P23,Emiss_Result_orig_P6,Emiss_Result_orig_P4,Emiss_Result_WDvar_P23,Emiss_Result_WDvar_P6,fill=TRUE)
+setkey(Emiss_Result_var,st)
+
+## make a column to indicate the start and end of the CH4 release
+Emiss_Result_var[,REL := FALSE]
+Emiss_Result_var[st > parse_date_time3("19.03.2021 09:00",tz="Etc/GMT-1") & st < parse_date_time3("20.03.2021 09:00",tz="Etc/GMT-1"),REL := TRUE]
+
+## only use data with NE wind
+Result_var <- Emiss_Result_var[Wind_dir == "NE"]
+
+#########################
+### Plot and overview ###
+#########################
+
+Sonic_conc <- c("SonicA","SonicB","SonicC","Sonic2")
+Sonic_WDvar <- paste0(Sonic_conc,rep(c(paste0("_m",1:10),"",paste0("_p",1:10)),4))
+
+#### Concentration offset
+plot(Q_GF16 ~ st, Result_var[REL == TRUE & Sonic %in% Sonic_conc],type="l",col=CH4Cols["GF16"],ylim=c(-10,10))
+lines(Q_GF17 ~ st, Result_var[REL == TRUE & Sonic %in% Sonic_conc],col=CH4Cols["GF17"])
+lines(Q_GF18 ~ st, Result_var[REL == TRUE & Sonic %in% Sonic_conc],col=CH4Cols["GF18"])
+lines(Q_GF25 ~ st, Result_var[REL == TRUE & Sonic %in% Sonic_conc],col=CH4Cols["GF25"])
+lines(Q_GF26 ~ st, Result_var[REL == TRUE & Sonic %in% Sonic_conc],col=CH4Cols["GF26"])
+lines(Q_MFC ~ st, Result_var[REL == TRUE & Sonic %in% Sonic_conc],col="black",lwd=2)
+
+#### Wind direction offset
+plot(Q_GF16 ~ st, Result_var[REL == TRUE & Sonic %in% Sonic_WDvar & Conc_corr == "P23"],type="l",col=CH4Cols["GF16"],ylim=c(-10,10))
+lines(Q_GF17 ~ st, Result_var[REL == TRUE & Sonic %in% Sonic_WDvar & Conc_corr == "P23"],col=CH4Cols["GF17"])
+lines(Q_GF18 ~ st, Result_var[REL == TRUE & Sonic %in% Sonic_WDvar & Conc_corr == "P23"],col=CH4Cols["GF18"])
+lines(Q_GF25 ~ st, Result_var[REL == TRUE & Sonic %in% Sonic_WDvar & Conc_corr == "P23"],col=CH4Cols["GF25"])
+lines(Q_GF26 ~ st, Result_var[REL == TRUE & Sonic %in% Sonic_WDvar & Conc_corr == "P23"],col=CH4Cols["GF26"])
+lines(Q_MFC ~ st, Result_var[REL == TRUE & Sonic %in% Sonic_WDvar & Conc_corr == "P23"],col="black",lwd=2)
+
+
+#####################
+### Apply filters ###
+#####################
+
+------> use the filtering from the original version. There should not be any changes necessary.
+
+iWD16 <- c(30,64)
+iWD17 <- c(21,94)
+iWD18 <- c(21,71)
+iWD25 <- c(30,61)
+
+iWD <- list(
+	iWD_GF16 = c(iWD16[1], iWD16[2])
+	,iWD_GF17 = c(iWD17[1], iWD17[2])
+	,iWD_GF18 = c(iWD18[1], iWD18[2])
+	,iWD_GF25 = c(iWD25[1], iWD25[2])
+)
+
+iWDIC2 <- c(357,93)
+
+### Wind direction
+# MC
+for(x in c("GF16","GF17","GF18","GF25")){
+	Result_var[Campaign == "MC" & (WD < iWD[[paste0("iWD_",x)]][1] | WD > iWD[[paste0("iWD_",x)]][2]),
+		grep(paste0("Q_",x),names(Result_var),value=TRUE)	 := NA_real_ ]
+}
+
+# IC2
+for(x in c("GF16","GF17","GF18","GF25","GF26")){
+	Result_var[Campaign == "IC2" & (WD_WS2 < iWDIC2[1] - 5 & WD_WS2 > iWDIC2[2] + 5),
+		grep(paste0("Q_",x),names(Result_var),value=TRUE)	 := NA_real_ ]
+}
+
+
+## bLS Filtern
+Result_var[Ustar < 0.15, grep("Q_GF",names(Result_var),value = TRUE) := NA_real_]
+
+
+#########################
+### Plotting the data ###
+#########################
+
+#########################
+### Concentration offset:
+
+par(mfrow=c(4,1),mar=c(3,4,2,0.2))
+# GF16
+plot(Q_GF16 ~ st, Result_var[REL == TRUE & Sonic %in% "SonicC" & Conc_corr == "wo"],type="l",col="red",ylim=c(-2,8),main="GF16",ylab="Q [kg/h]")
+lines(Q_GF16 ~ st, Result_var[REL == TRUE & Sonic %in% "SonicC" & Conc_corr == "P23"],col="green")
+lines(Q_GF16 ~ st, Result_var[REL == TRUE & Sonic %in% "SonicC" & Conc_corr == "P6"],col="blue")
+lines(Q_GF16 ~ st, Result_var[REL == TRUE & Sonic %in% "SonicC" & Conc_corr == "P4"],col="pink")
+lines(Q_MFC ~ st, Result_var[],col="black",lwd=2)
+abline(h=0)
+legend("topright",legend=c("wo","P23","P6",'P4'),fill=c("red","green","blue",'pink'))
+# GF17
+plot(Q_GF17 ~ st, Result_var[REL == TRUE & Sonic %in% "SonicC" & Conc_corr == "wo"],type="l",col="red",ylim=c(-2,8),main="GF17",ylab="Q [kg/h]")
+lines(Q_GF17 ~ st, Result_var[REL == TRUE & Sonic %in% "SonicC" & Conc_corr == "P23"],col="green")
+lines(Q_GF17 ~ st, Result_var[REL == TRUE & Sonic %in% "SonicC" & Conc_corr == "P6"],col="blue")
+lines(Q_GF17 ~ st, Result_var[REL == TRUE & Sonic %in% "SonicC" & Conc_corr == "P4"],col="blue")
+lines(Q_MFC ~ st, Result_var[],col="black",lwd=2)
+abline(h=0)
+legend("topright",legend=c("wo","P23","P6",'P4'),fill=c("red","green","blue",'pink'))
+# GF18
+plot(Q_GF18 ~ st, Result_var[REL == TRUE & Sonic %in% "SonicC" & Conc_corr == "wo"],type="l",col="red",ylim=c(-2,8),main="GF18",ylab="Q [kg/h]")
+lines(Q_GF18 ~ st, Result_var[REL == TRUE & Sonic %in% "SonicC" & Conc_corr == "P23"],col="green")
+lines(Q_GF18 ~ st, Result_var[REL == TRUE & Sonic %in% "SonicC" & Conc_corr == "P6"],col="blue")
+lines(Q_GF18 ~ st, Result_var[REL == TRUE & Sonic %in% "SonicC" & Conc_corr == "P4"],col="blue")
+lines(Q_MFC ~ st, Result_var[],col="black",lwd=2)
+abline(h=0)
+legend("topright",legend=c("wo","P23","P6",'P4'),fill=c("red","green","blue",'pink'))
+# GF25
+plot(Q_GF25 ~ st, Result_var[REL == TRUE & Sonic %in% "SonicC" & Conc_corr == "wo"],type="l",col="red",ylim=c(-2,8),main="GF25",ylab="Q [kg/h]")
+lines(Q_GF25 ~ st, Result_var[REL == TRUE & Sonic %in% "SonicC" & Conc_corr == "P23"],col="green")
+lines(Q_GF25 ~ st, Result_var[REL == TRUE & Sonic %in% "SonicC" & Conc_corr == "P6"],col="blue")
+lines(Q_GF25 ~ st, Result_var[REL == TRUE & Sonic %in% "SonicC" & Conc_corr == "P4"],col="blue")
+lines(Q_MFC ~ st, Result_var[],col="black",lwd=2)
+abline(h=0)
+legend("topright",legend=c("wo","P23","P6",'P4'),fill=c("red","green","blue",'pink'))
+
+# ----> does not matter if P23 or P6 is used. Therefore, us P23. Above only the Emission with bLS SonicC (UA-UW)are given
+# --> looking at IC2 is not necessary. There were no changes.
+
+
+#############################
+### Wind direction variation:
+
+WDmCols <- colorRampPalette(c("#00ff00", "#003300"))(10)
+WDpCols <- colorRampPalette(c("#00ffff", "#0033ff"))(10)
+WDvarCols <- c(WDmCols,"red",WDpCols)
+names(WDvarCols) <- paste0("SonicB",c(paste0("_m",1:10),"_0",paste0("_p",1:10)))
+
+## GF17
+par(mfrow=c(4,1),mar=c(3,4,2,0.2))
+for(j in c("SonicA","Sonic2","SonicB","SonicC")){
+plot(Q_GF17 ~ st, Result_var[REL == TRUE & Sonic %in% j & Conc_corr == "P23"],type="l",col="red",ylim=c(-2,10),main=j
+	,ylab="Q GF17 [kg/h]")
+for(i in 1:10){
+	lines(Q_GF17 ~ st, Result_var[REL == TRUE & Sonic %in% paste0(j,"_m",i) & Conc_corr == "P23"],type="o",col=WDmCols[i])
+	lines(Q_GF17 ~ st, Result_var[REL == TRUE & Sonic %in% paste0(j,"_p",i) & Conc_corr == "P23"],type="o",col=WDpCols[i])
+}
+lines(Q_MFC ~ st, Result_var,col="black",lwd=2)
+abline(h=0)
+legend("bottomright",legend=c("negative","neutral","positive"),fill=c(WDmCols[8],"red",WDpCols[8]))
+}
+
+## GF18
+par(mfrow=c(4,1),mar=c(3,4,2,0.2))
+for(j in c("SonicA","Sonic2","SonicB","SonicC")){
+plot(Q_GF18 ~ st, Result_var[REL == TRUE & Sonic %in% j & Conc_corr == "P23"],type="l",col="red",ylim=c(-2,10),main=j
+	,ylab="Q GF18 [kg/h]")
+for(i in 1:10){
+	lines(Q_GF18 ~ st, Result_var[REL == TRUE & Sonic %in% paste0(j,"_m",i) & Conc_corr == "P23"],col=WDmCols[i])
+	lines(Q_GF18 ~ st, Result_var[REL == TRUE & Sonic %in% paste0(j,"_p",i) & Conc_corr == "P23"],col=WDpCols[i])
+}
+lines(Q_MFC ~ st, Result_var,col="black",lwd=2)
+abline(h=0)
+legend("bottomright",legend=c("negative","neutral","positive"),fill=c(WDmCols[8],"red",WDpCols[8]))
+}
+
+## GF16
+par(mfrow=c(4,1),mar=c(3,4,2,0.2))
+for(j in c("SonicA","Sonic2","SonicB","SonicC")){
+plot(Q_GF16 ~ st, Result_var[REL == TRUE & Sonic %in% j & Conc_corr == "P23"],type="l",col="red",ylim=c(-2,10),main=j
+	,ylab="Q GF16 [kg/h]")
+for(i in 1:10){
+	lines(Q_GF16 ~ st, Result_var[REL == TRUE & Sonic %in% paste0(j,"_m",i) & Conc_corr == "P23"],col=WDmCols[i])
+	lines(Q_GF16 ~ st, Result_var[REL == TRUE & Sonic %in% paste0(j,"_p",i) & Conc_corr == "P23"],col=WDpCols[i])
+}
+lines(Q_MFC ~ st, Result_var,col="black",lwd=2)
+abline(h=0)
+legend("bottomright",legend=c("negative","neutral","positive"),fill=c(WDmCols[8],"red",WDpCols[8]))
+}
+
+## GF25
+par(mfrow=c(4,1),mar=c(3,4,2,0.2))
+for(j in c("SonicA","Sonic2","SonicB","SonicC")){
+plot(Q_GF25 ~ st, Result_var[REL == TRUE & Sonic %in% j & Conc_corr == "P23"],type="l",col="red",ylim=c(-2,10),main=j
+	,ylab="Q GF25 [kg/h]")
+for(i in 1:10){
+	lines(Q_GF25 ~ st, Result_var[REL == TRUE & Sonic %in% paste0(j,"_m",i) & Conc_corr == "P23"],col=WDmCols[i])
+	lines(Q_GF25 ~ st, Result_var[REL == TRUE & Sonic %in% paste0(j,"_p",i) & Conc_corr == "P23"],col=WDpCols[i])
+}
+lines(Q_MFC ~ st, Result_var,col="black",lwd=2)
+abline(h=0)
+legend("bottomright",legend=c("negative","neutral","positive"),fill=c(WDmCols[8],"red",WDpCols[8]))
+}
+
+
+## all GasFinders and SonicB
+par(mfrow=c(4,1),mar=c(3,4,2,0.2))
+for(j in c("GF17","GF18","GF16","GF25")){
+plot(get(paste0("Q_",j),Result_var[REL == TRUE & Sonic=="SonicB" & Conc_corr == "P23"]) ~ st
+	, Result_var[REL == TRUE & Sonic == "SonicB" & Conc_corr == "P23"],type="o",col="red",ylim=c(-2,10), ylab=paste0("Q ",j," [kg/h]"))
+for(i in 1:10){
+	lines(get(paste0("Q_",j),Result_var[REL == TRUE & Sonic == paste0("SonicB_m",i) & Conc_corr == "P23"]) ~ st
+		, Result_var[REL == TRUE & Sonic == paste0("SonicB_m",i) & Conc_corr == "P23"],type="o",col=WDmCols[i])
+	lines(get(paste0("Q_",j),Result_var[REL == TRUE & Sonic == paste0("SonicB_p",i) & Conc_corr == "P23"]) ~ st
+		, Result_var[REL == TRUE & Sonic == paste0("SonicB_p",i) & Conc_corr == "P23"],type="o",col=WDpCols[i])
+}
+lines(Q_MFC ~ st, Result_var,col="black",lwd=2)
+abline(h=0)
+# legend("bottomright",legend=c("negative","neutral","positive"),fill=c(WDmCols[8],"red",WDpCols[8]))
+}
+
+
+## all GasFinders and SonicC
+par(mfrow=c(4,1),mar=c(3,4,2,0.2))
+for(j in c("GF17","GF18","GF16","GF25")){
+plot(get(paste0("Q_",j),Result_var[REL == TRUE & Sonic=="SonicC" & Conc_corr == "P23"]) ~ st
+	, Result_var[REL == TRUE & Sonic == "SonicC" & Conc_corr == "P23"],type="o",col="red",ylim=c(-2,10), ylab=paste0("Q ",j," [kg/h]"))
+for(i in 1:10){
+	lines(get(paste0("Q_",j),Result_var[REL == TRUE & Sonic == paste0("SonicC_m",i) & Conc_corr == "P23"]) ~ st
+		, Result_var[REL == TRUE & Sonic == paste0("SonicC_m",i) & Conc_corr == "P23"],type="o",col=WDmCols[i])
+	lines(get(paste0("Q_",j),Result_var[REL == TRUE & Sonic == paste0("SonicC_p",i) & Conc_corr == "P23"]) ~ st
+		, Result_var[REL == TRUE & Sonic == paste0("SonicC_p",i) & Conc_corr == "P23"],type="o",col=WDpCols[i])
+}
+lines(Q_MFC ~ st, Result_var,col="black",lwd=2)
+abline(h=0)
+# legend("bottomright",legend=c("negative","neutral","positive"),fill=c(WDmCols[8],"red",WDpCols[8]))
+}
+
+
+#################
+### save data ###
+#################
+
+saveRDS(Result_var,file.path(PfadRSaves,"Result_variation.rds"))
 

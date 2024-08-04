@@ -198,9 +198,6 @@ SonicAll_10min_cast$Sonic_ordh <- factor(SonicAll_10min_cast$Sonic, levels=c("UA
 SonicAll_10min_cast$Sonic_ord <- factor(SonicAll_10min_cast$Sonic, levels=c("UA-UW","UA-2.0h","UA-5.3h","UA-8.6h"),
 	labels=c("UA-UW","UA-50m","UA-100m","UA-150m"))
 
-# SonicAll_10min_cast$Sonic_ordh <- factor(SonicAll_10min_cast$Sonic, levels=c("3DUA-UW","3DUA-50m","3DUA-100m","3DUA-150m"),
-# 	labels=c("UA-UW","UA-2.0h","UA-5.3h","UA-8.6h"))
-
 SonicAll_10min_cast[grep('WD', variable), top_variable := 'WD']
 SonicAll_10min_cast[grep('U_sonic', variable), top_variable := 'U_sonic']
 SonicAll_10min_cast[grep('Ustar', variable), top_variable := 'Ustar']
@@ -454,9 +451,17 @@ Fig_stability_UWSonic <- Result[st > "2021-03-19 08:00" & st < "2021-03-20 09:00
 
 
 Fig_recovery_stability_UWSonic_IDM <- ggarrange(Fig_recovery_UWSonic_IDM,Fig_stability_UWSonic,align='v',ncol=1,heights=c(5,2))
+
+
 Fig_5 <- Fig_recovery_stability_UWSonic_IDM +
-annotate("text", x = 0.983, y = 0.80, label = 'atop(bold("(a)"))', color = "black",parse=TRUE,cex = 5) +
-annotate("text", x = 0.983, y = 0.23, label = 'atop(bold("(b)"))', color = "black",parse=TRUE,cex = 5)
+annotate("text", x = 0.983, y = 0.80, label = 'atop(bold("(a)"))', color = "black", parse = TRUE, cex = 5) +
+annotate("text", x = 0.983, y = 0.23, label = 'atop(bold("(b)"))', color = "black", parse = TRUE, cex = 5) +
+annotate("text", x = 0.25, y = 0.898, label = 'Daytime release', size = 5.1, hjust = 0) +
+annotate('segment', xend = 0.206, x = 0.242, y = 0.898, yend = 0.898, arrow = arrow(length = unit(0.1, 'cm'), type = 'closed', angle = 90), size = 0.35) +
+annotate('segment', x = 0.382, xend = 0.418, y = 0.898, yend = 0.898, arrow = arrow(length = unit(0.1, 'cm'), type = 'closed', angle = 90), size = 0.35) +
+annotate("text", x = 0.6675, y = 0.898, label = 'Nighttime release', size = 5.1, hjust = 0) +
+annotate('segment', xend = 0.58, x = 0.6593, y = 0.898, yend = 0.898, arrow = arrow(length = unit(0.1, 'cm'), type = 'closed', angle = 90), size = 0.35) +
+annotate('segment', x = 0.8088, xend = 0.888, y = 0.898, yend = 0.898, arrow = arrow(length = unit(0.1, 'cm'), type = 'closed', angle = 90), size = 0.35)
 
 ggsave(file.path(PathFigures,"Figure_5.png"),Fig_5,width = 30, height = 30/2, units="cm")
 
