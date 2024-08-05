@@ -8,11 +8,11 @@
 ################################################
 
 # Author: Marcel Bühler
-# Date: August 4, 2024
+# Date: August 5, 2024
 # Contact: mb@bce.au.dk or Christoph Häni christoph.haeni@bfh.ch
 # Description: This script calculates the plume contours in the XY and XZ plane. This script is not necessary to reproduce the findings of the publication.
 #
-# Note: This code was written by Marcel Bühler and is intended to follow the publication 'Applicability of the inverse dispersion method to measure emissions from animal housing' in AMT. 
+# Note: This code was written by Marcel Bühler and is intended to follow the publication 'Applicability of the inverse dispersion method to measure emissions from animal housings' in AMT. 
 # Please feel free to use and modify it, but attribution is appreciated.
 
 

@@ -8,11 +8,11 @@
 ##############################################
 
 # Author: Marcel Bühler
-# Date: August 4, 2024
+# Date: August 5, 2024
 # Contact: mb@bce.au.dk or Christoph Häni christoph.haeni@bfh.ch
-# Description: With this scirpt one can create all the plots and values of the tables in the publication, the supplement and the initial submission.
+# Description: With this script one can recreate all the plots and values in the tables of the publication, the supplement, and the initial submission.
 #
-# Note: This code was written by Marcel Bühler and is intended to follow the publication 'Applicability of the inverse dispersion method to measure emissions from animal housing' in AMT. 
+# Note: This code was written by Marcel Bühler and is intended to follow the publication 'Applicability of the inverse dispersion method to measure emissions from animal housings' in AMT. 
 # Please feel free to use and modify it, but attribution is appreciated.
 
 
@@ -40,10 +40,6 @@ library(plotly) # this might not be necessary
 PathData <- "Path to /data"		
 PathRSaves <- "Path to /RSaves"
 PathFigures <- 'Path to /Figures'
-
-PathData <- 'C:/Users/au711252/OneDrive - Aarhus universitet/Documents/BFH/Papers/Artificial Release Experiment/DATA release experiment/Zenodo upload/'
-PathRSaves <- 'C:/repos/4_Projects/Buehler_2024_AMT/RSaves'
-PathFigures <- 'C:/repos/4_Projects/Buehler_2024_AMT/Figures'
 
 
 #################
